@@ -15,7 +15,7 @@ namespace Control3
         public int LeftStatus = 0;
         private SerialPort serialPort;
 
-        public CH9329(string PortName = "COM8", int BaudRate = 9600)
+        public CH9329(string PortName = "COM4", int BaudRate = 57600)
         {
             this.PortName = PortName;
             this.BaudRate = BaudRate;
@@ -105,7 +105,7 @@ namespace Control3
         {
             LEFT = 0x01,
             RIGHT = 0x02,
-            MIDDLE = 0x04,
+            MIDDLE = 0x03,
         }
 
         private string sendPacket(byte[] data)

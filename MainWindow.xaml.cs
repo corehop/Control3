@@ -123,14 +123,26 @@ namespace Control3
             else if (e.KeyCode == System.Windows.Forms.Keys.LWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 3)); }  
             else if (e.KeyCode == System.Windows.Forms.Keys.LMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 2)); }  
             else if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 1)); ; }  
-            else if (e.KeyCode == System.Windows.Forms.Keys.LControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 0)); } 
+            else if (e.KeyCode == System.Windows.Forms.Keys.LControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 0)); }
+            else if (e.KeyCode == System.Windows.Forms.Keys.E && ((byte)App.Flag.Decoration == 0b0101)) // Ctrl + Shift + E
+            {
+                // Exit remote session on XButton1 or XButton2
+                if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
+                else
+                {
+                    App.Flag.isRemote = false;
+                    SetMessage("", Colors.Blue);
+                }
+                e.Handled = true;
+                return;
+            }
             try
             {
                 byte value = Flags.KeyMap[(byte)e.KeyValue];
                 MyCH9329.charKeyType(App.Flag.Decoration, value);
             }
             catch (Exception ex) { if (ex != null) { } }
-            e.Handled = true;
+                e.Handled = true;
         }
         private static void GlobalHook_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
         {
@@ -156,7 +168,27 @@ namespace Control3
         }
         private void GlobalHook_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            if (!App.Flag.isRemote) { return; }
+            if (!App.Flag.isRemote)
+            {
+                // Check if the mouse is at the left edge of the screen
+                if (e.X <= 0)
+                {
+                    // Switch to remote mode
+                    if (App.Flag.COMPort != null)
+                    {
+                        MouseUtility.SetMouseCursorAside();
+                        mouse.GetCurrentState();
+                        App.Flag.Decoration = 0;
+                        App.Flag.isRemote = true;
+                        SetMessage("Remote Session Active", Colors.Blue);
+                    }
+                    else
+                    {
+                        SetMessage("No KVM cable present", Colors.Red);
+                    }
+                }
+                return;
+            }
 
             MouseUtility.SetMouseCursorAside();
             if (!App.Flag.isMoving)
@@ -174,12 +206,16 @@ namespace Control3
 
             if (e.Button == System.Windows.Forms.MouseButtons.Left) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.LEFT); }
             else if (e.Button == System.Windows.Forms.MouseButtons.Right) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.RIGHT); }
-            else if (e.Button == System.Windows.Forms.MouseButtons.Middle)
+            else if (e.Button == System.Windows.Forms.MouseButtons.Middle) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.MIDDLE); }
+            else if (e.Button == System.Windows.Forms.MouseButtons.XButton1 ||
+                e.Button == System.Windows.Forms.MouseButtons.XButton2)
             {
-                if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); } else
+                // Exit remote session on XButton1 or XButton2
+                if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
+                else
                 {
-                   App.Flag.isRemote = false;
-                   SetMessage("", Colors.Blue);
+                    App.Flag.isRemote = false;
+                    SetMessage("", Colors.Blue);
                 }
             }
             ((MouseEventExtArgs)e).Handled = true;
