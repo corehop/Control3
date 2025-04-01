@@ -159,7 +159,8 @@ namespace Control3
         public static void SetMouseCursorAside()
         {
             Screen primaryScreen = Screen.PrimaryScreen;
-            int maxX = primaryScreen.Bounds.Width; 
+            //Set the Host mouse to the middle of the screen because the edges trigger events and slow down processing
+            int maxX = primaryScreen.Bounds.Height/2; 
             int maxY = primaryScreen.Bounds.Height/2; 
             SetCursorPos(maxX, maxY);
         }
