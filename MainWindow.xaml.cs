@@ -47,7 +47,7 @@ namespace Control3
             mouse.Properties.AxisMode = DeviceAxisMode.Relative;
             mouse.Acquire();
 
-            // Initialize CH3929 and Mouse hooks
+            // Initialize CH9329 and Mouse hooks
             if (SetPort())
             {
                 MyCH9329 = new CH9329(App.Flag.COMPort);
@@ -93,6 +93,9 @@ namespace Control3
 
         private void SendKeepAwakeSignal(object state)
         {
+            //Wait a random amount of time to prevent the remote from detecting a pattern
+            Thread.Sleep(new Random().Next(1000, 5000));
+
             byte value = Flags.KeyMap[(byte)KeepAwakeKey];
             MyCH9329.charKeyType(App.Flag.Decoration, value);
             MyCH9329.charKeyType(App.Flag.Decoration, value);
@@ -102,6 +105,9 @@ namespace Control3
         {
             if (!App.Flag.isRemote)
             {
+                //Wait a random amount of time to prevent the remote from detecting a pattern
+                Thread.Sleep(new Random().Next(1000, 5000));
+
                 byte value = Flags.KeyMap[(byte)KeepAwakeKey];
                 MyCH9329.charKeyType(App.Flag.Decoration, value);
                 MyCH9329.charKeyType(App.Flag.Decoration, value);

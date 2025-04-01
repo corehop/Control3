@@ -22,7 +22,7 @@ namespace Control3
 
         // Is the mouse in motion?  Wait to send the next motion, else you get a queue of movement which continues remote
         // Now it just skips movements when the serialport is not ready yet
-        // This global is set at a MouseMove being captured and unnset once the the packet is processed by the CH3929
+        // This global is set at a MouseMove being captured and unnset once the the packet is processed by the CH9329
         public Boolean isMoving = false;
 
         // True meanse that all the mouse and keyboard actions are processed by the globalhook routines
