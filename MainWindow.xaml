@@ -16,7 +16,7 @@
                 <Button Content="Windowed" Margin="0,0,10,0" Click="Video_Click" Tag="False" Width="100"/>
                 <Button Content="FullScreen" Margin="0,0,0,0" Click="Video_Click" Tag="True" Width="100"/>
             </StackPanel>
-            <TextBlock Text="Press Mouse 3/4 or Ctrl+Alt+E to exit remote session" HorizontalAlignment="Center" Margin="0,5,0,5" FontSize="11"/>
+            <TextBlock Text="Press Mouse 4 (Forward) or Ctrl+Alt+E to exit remote session" HorizontalAlignment="Center" Margin="0,5,0,5" FontSize="11"/>
         </StackPanel>
     </Grid>
 </Window>

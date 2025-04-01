@@ -105,7 +105,9 @@ namespace Control3
         {
             LEFT = 0x01,
             RIGHT = 0x02,
-            MIDDLE = 0x03,
+            MIDDLE = 0x04,
+            X1 = 0x08,
+            X2 = 0x03,
         }
 
         private string sendPacket(byte[] data)
@@ -202,6 +204,14 @@ namespace Control3
         public void charKeyType(byte k0, byte k1, byte k2 = 0, byte k3 = 0, byte k4 = 0, byte k5 = 0, byte k6 = 0)
         {
             keyDown(KeyGroup.CharKey, k0, k1, k2, k3, k4, k5, k6);
+            keyUpAll(KeyGroup.CharKey);
+        }
+        public void charKeyDown(byte k0, byte k1, byte k2 = 0, byte k3 = 0, byte k4 = 0, byte k5 = 0, byte k6 = 0)
+        {
+            keyDown(KeyGroup.CharKey, k0, k1, k2, k3, k4, k5, k6);
+        }
+        public void charKeyUp(byte k0, byte k1, byte k2 = 0, byte k3 = 0, byte k4 = 0, byte k5 = 0, byte k6 = 0)
+        {
             keyUpAll(KeyGroup.CharKey);
         }
 

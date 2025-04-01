@@ -139,12 +139,13 @@ namespace Control3
             try
             {
                 byte value = Flags.KeyMap[(byte)e.KeyValue];
-                MyCH9329.charKeyType(App.Flag.Decoration, value);
+                MyCH9329.charKeyDown(App.Flag.Decoration, value);
             }
             catch (Exception ex) { if (ex != null) { } }
-                e.Handled = true;
+            
+            e.Handled = true;
         }
-        private static void GlobalHook_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
+        private void GlobalHook_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
         {
             if (!App.Flag.isRemote) { return; }
 
@@ -156,7 +157,14 @@ namespace Control3
             else if (e.KeyCode == System.Windows.Forms.Keys.LMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 2)); }
             else if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 1)); }
             else if (e.KeyCode == System.Windows.Forms.Keys.LControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 0)); }
-            
+
+            try
+            {
+                byte value = Flags.KeyMap[(byte)e.KeyValue];
+                MyCH9329.charKeyUp(App.Flag.Decoration, value);
+            }
+            catch (Exception ex) { if (ex != null) { } }
+
             e.Handled = true;
         }
         private void GlobalHook_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -207,10 +215,10 @@ namespace Control3
             if (e.Button == System.Windows.Forms.MouseButtons.Left) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.LEFT); }
             else if (e.Button == System.Windows.Forms.MouseButtons.Right) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.RIGHT); }
             else if (e.Button == System.Windows.Forms.MouseButtons.Middle) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.MIDDLE); }
-            else if (e.Button == System.Windows.Forms.MouseButtons.XButton1 ||
-                e.Button == System.Windows.Forms.MouseButtons.XButton2)
+            else if (e.Button == System.Windows.Forms.MouseButtons.XButton1) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.X1); }
+            else if (e.Button == System.Windows.Forms.MouseButtons.XButton2)
             {
-                // Exit remote session on XButton1 or XButton2
+                // Exit remote session on XButton2
                 if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
                 else
                 {
