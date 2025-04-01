@@ -8,20 +8,28 @@
     <Grid>
         <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10" VerticalAlignment="Bottom" Name="message"/>
         <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,5">
-            <ComboBox x:Name="videoSource" DisplayMemberPath="Name" Width="320" SelectionChanged="sourceSelected"/>
-        </StackPanel>
-        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,10,0,0">
-            <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Video Source" HorizontalAlignment="Left" Margin="0,0,0,5"/>
+            <ComboBox x:Name="videoSource" DisplayMemberPath="Name" Width="320" SelectionChanged="sourceSelected">
+                <ComboBoxItem Content="No Capture Card Found"/>
+            </ComboBox>
+            <TextBlock Text="COM Port" HorizontalAlignment="Left" Margin="0,0,0,5"/>
+            <ComboBox x:Name="comPort" DisplayMemberPath="Name" Width="320" SelectionChanged="sourceSelected">
+                <ComboBoxItem Tag="0" Content="No KVM cable found"/>
+            </ComboBox>
+            <StackPanel Orientation="Horizontal" Margin="0,20,0,10">
                 <Button Content="No Video" Margin="0,0,10,0" Click="NoVideo_Click" Width="100"/>
                 <Button Content="Windowed" Margin="0,0,10,0" Click="Video_Click" Tag="False" Width="100"/>
                 <Button Content="FullScreen" Margin="0,0,0,0" Click="Video_Click" Tag="True" Width="100"/>
             </StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,20,0,10">
+                <TextBlock Text="Keep Awake" Margin="0,0,10,0" VerticalAlignment="Bottom"/>
+                <ComboBox x:Name="keepAwakeComboBox" Width="150" SelectionChanged="KeepAwakeComboBox_SelectionChanged" SelectedIndex="1">
+                    <ComboBoxItem Content="Off" />
+                    <ComboBoxItem Content="While Inactive" />
+                    <ComboBoxItem Content="Always" />
+                </ComboBox>
+            </StackPanel>
             <TextBlock Text="Press Mouse 4 (Forward) or Ctrl+Alt+E to exit remote session" HorizontalAlignment="Center" Margin="0,5,0,5" FontSize="11"/>
-            <ComboBox x:Name="keepAwakeComboBox" Width="150" SelectionChanged="KeepAwakeComboBox_SelectionChanged" SelectedIndex="1">
-                <ComboBoxItem Content="Off" />
-                <ComboBoxItem Content="While Inactive" />
-                <ComboBoxItem Content="Always" />
-            </ComboBox>
         </StackPanel>
     </Grid>
 </Window>

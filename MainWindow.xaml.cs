@@ -10,6 +10,7 @@ using System.Linq;
 using Windows.Devices.Enumeration;
 using System.Diagnostics;
 using System.Threading;
+using WinRT;
 
 namespace Control3
 {
@@ -318,12 +319,30 @@ namespace Control3
             {
                 if (port.Value.Contains("VID_1A86&PID_7523"))
                 {
+                    //Remove the default option
+                    if (App.Flag.COMPort == null)
+                        comPort.Items.RemoveAt(0);
+
+                    //Add an option to the comPort combobox
+                    ComboBoxItem portOption = new ComboBoxItem { Content = port.Key };
+                    comPort.Items.Add(portOption);
+
+                    //Select the new option
+                    comPort.SelectedItem = portOption;
+
                     App.Flag.COMPort = port.Key;
-                    return true;
                 }
             }
-            SetMessage("No KVM cable present", Colors.Red);
-            return false;
+
+            if ( App.Flag.COMPort == null)
+            {
+                comPort.SelectedIndex = 0;
+                SetMessage("No KVM cable present", Colors.Red);
+
+                return false;
+            }
+
+            return true;
         }
     }
 }
