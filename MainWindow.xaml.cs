@@ -9,25 +9,35 @@ using System.Collections.Generic;
 using System.Linq;
 using Windows.Devices.Enumeration;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Control3
 {
     public sealed partial class MainWindow : Window
     {
         public static TextBlock MessageControl { get; set; }                        // Object to be able to set a message from other windows
+
+        private const int KeepAwakePeriod = 60000;
+        private const System.Windows.Forms.Keys KeepAwakeKey = System.Windows.Forms.Keys.Scroll;
         private Remote remoteInstance = null;                                       // Create object for remote window so we can open/close it from the main window
         public static Mouse mouse;                                                  // Used for the mouse movement on system level (SharpDX)
         private IKeyboardMouseEvents globalHook;                                    // Used for all the mouse and keyboard event capture
         private CH9329 MyCH9329;                                                    // The object which sends the data to us CH9329
         List<VideoSourceInfo> videoSourceList = new List<VideoSourceInfo>();        // Used to fill the combobox and obtain the ID to open the remote window
+        private Timer keepAwakeTimer;
+        private Timer keepAwakeWhileInactiveTimer;
         public MainWindow()
         {
+            // Initialize Keep Awake Timer
+            keepAwakeTimer = new Timer(SendKeepAwakeSignal, null, Timeout.Infinite, Timeout.Infinite);
+            keepAwakeWhileInactiveTimer = new Timer(SendKeepAwakeWhileInactiveSignal, null, Timeout.Infinite, Timeout.Infinite);
+
             // Initialize Window
             this.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(200, 100, 600, 350));
             this.AppWindow.SetIcon(@"Assets\control.ico");
             this.InitializeComponent();
             this.Closed += OnWindowClosed;
-            PopulateComboBox();
+            PopulateVideoComboBox();
             MainWindow.MessageControl = message;
 
             // SharpDX Mouse initialization to get raw mouse movement 
@@ -38,7 +48,7 @@ namespace Control3
             mouse.Acquire();
 
             // Initialize CH3929 and Mouse hooks
-            if (SetPort()) 
+            if (SetPort())
             {
                 MyCH9329 = new CH9329(App.Flag.COMPort);
                 globalHook = Hook.GlobalEvents();
@@ -48,9 +58,57 @@ namespace Control3
                 globalHook.MouseDown += GlobalHook_MouseDown;
                 globalHook.MouseUp += GlobalHook_MouseUp;
                 globalHook.MouseWheel += GlobalHook_MouseWheel;
+                //Re-evalutate KeepAwakeComboBox
+                KeepAwakeComboBox_SelectionChanged(keepAwakeComboBox, null);
             }
         }
-        private async void PopulateComboBox()
+
+        private void KeepAwakeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (MyCH9329 == null)
+            {
+                return;
+            }
+            var selectedOption = (ComboBoxItem)((ComboBox)sender).SelectedItem;
+            switch (selectedOption.Content.ToString())
+            {
+                case "Off":
+                    keepAwakeTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    keepAwakeWhileInactiveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    break;
+                case "While Inactive":
+                    // Stop the Keep Awake Timer
+                    keepAwakeTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    // Start the Keep Awake While Inactive Timer
+                    keepAwakeWhileInactiveTimer.Change(0, KeepAwakePeriod);
+                    break;
+                case "Always":
+                    //Stop the Keep Awake While Inactive Timer
+                    keepAwakeWhileInactiveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    // Start the Keep Awake Timer
+                    keepAwakeTimer.Change(0, KeepAwakePeriod);
+                    break;
+            }
+        }
+
+        private void SendKeepAwakeSignal(object state)
+        {
+            byte value = Flags.KeyMap[(byte)KeepAwakeKey];
+            MyCH9329.charKeyType(App.Flag.Decoration, value);
+            MyCH9329.charKeyType(App.Flag.Decoration, value);
+        }
+
+        private void SendKeepAwakeWhileInactiveSignal(object state)
+        {
+            if (!App.Flag.isRemote)
+            {
+                byte value = Flags.KeyMap[(byte)KeepAwakeKey];
+                MyCH9329.charKeyType(App.Flag.Decoration, value);
+                MyCH9329.charKeyType(App.Flag.Decoration, value);
+            }
+        }
+
+        private async void PopulateVideoComboBox()
         {
             string vSource = SettingsManager.GetSetting();
             Debug.WriteLine("From registry: "+vSource);

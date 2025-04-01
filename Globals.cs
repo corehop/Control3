@@ -130,6 +130,7 @@ namespace Control3
                 { 122, 0x44 },  // F11
                 { 123, 0x45 },  // F12
                 { 144, 0x53 },  // NumLock
+                { 145, 0x47 },  // ScrlLock
                 { 160, 0xE1 },  // LShiftKey
                 { 161, 0xE5 },  // RShiftKey
                 { 162, 0xE0 },  // LControlKey

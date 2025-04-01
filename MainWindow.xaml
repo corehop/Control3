@@ -17,6 +17,11 @@
                 <Button Content="FullScreen" Margin="0,0,0,0" Click="Video_Click" Tag="True" Width="100"/>
             </StackPanel>
             <TextBlock Text="Press Mouse 4 (Forward) or Ctrl+Alt+E to exit remote session" HorizontalAlignment="Center" Margin="0,5,0,5" FontSize="11"/>
+            <ComboBox x:Name="keepAwakeComboBox" Width="150" SelectionChanged="KeepAwakeComboBox_SelectionChanged" SelectedIndex="1">
+                <ComboBoxItem Content="Off" />
+                <ComboBoxItem Content="While Inactive" />
+                <ComboBoxItem Content="Always" />
+            </ComboBox>
         </StackPanel>
     </Grid>
 </Window>
