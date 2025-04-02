@@ -189,9 +189,9 @@ namespace Control3
             else if (e.KeyCode == System.Windows.Forms.Keys.LMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 2)); }  
             else if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 1)); ; }  
             else if (e.KeyCode == System.Windows.Forms.Keys.LControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 0)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.E && ((byte)App.Flag.Decoration == 0b0101)) // Ctrl + Shift + E
+            else if (e.KeyCode == System.Windows.Forms.Keys.E && ((byte)App.Flag.Decoration == 0b0101)) // Ctrl+Alt+E
             {
-                // Exit remote session on XButton1 or XButton2
+                // Exit remote session on Ctrl+Alt+E
                 if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
                 else
                 {
