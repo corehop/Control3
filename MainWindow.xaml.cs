@@ -187,27 +187,22 @@ namespace Control3
         {
             if (!App.Flag.isRemote) { return; }
 
-			if (e.KeyCode == System.Windows.Forms.Keys.RWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 7)); } 
-            else if (e.KeyCode == System.Windows.Forms.Keys.RMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 6)); } 
-            else if (e.KeyCode == System.Windows.Forms.Keys.RShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 5)); } 
-            else if (e.KeyCode == System.Windows.Forms.Keys.RControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 4)); } 
-            else if (e.KeyCode == System.Windows.Forms.Keys.LWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 3)); }  
-            else if (e.KeyCode == System.Windows.Forms.Keys.LMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 2)); }  
-            else if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 1)); ; }  
+            if (e.KeyCode == System.Windows.Forms.Keys.RWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 7)); }
+            else if (e.KeyCode == System.Windows.Forms.Keys.RMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 6)); }
+            else if (e.KeyCode == System.Windows.Forms.Keys.RShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 5)); }
+            else if (e.KeyCode == System.Windows.Forms.Keys.RControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 4)); }
+            else if (e.KeyCode == System.Windows.Forms.Keys.LWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 3)); }
+            else if (e.KeyCode == System.Windows.Forms.Keys.LMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 2)); }
+            else if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 1)); ; }
             else if (e.KeyCode == System.Windows.Forms.Keys.LControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 0)); }
             else if (e.KeyCode == System.Windows.Forms.Keys.E && ((byte)App.Flag.Decoration == 0b0101)) // Ctrl+Alt+E
             {
-                // Exit remote session on Ctrl+Alt+E
-                if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
-                else
-                {
-                    App.Flag.isRemote = false;
-                    SetMessage("", Colors.Blue);
-                }
+                //Skip Processing of Ctrl+Alt+E on keydown
                 e.Handled = true;
                 return;
             }
-            try
+
+                try
             {
                 byte value = Flags.KeyMap[(byte)e.KeyValue];
                 MyCH9329.charKeyDown(App.Flag.Decoration, value);
@@ -228,6 +223,19 @@ namespace Control3
             else if (e.KeyCode == System.Windows.Forms.Keys.LMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 2)); }
             else if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 1)); }
             else if (e.KeyCode == System.Windows.Forms.Keys.LControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 0)); }
+            else if (e.KeyCode == System.Windows.Forms.Keys.E && ((byte)App.Flag.Decoration == 0b0101)) // Ctrl+Alt+E
+            {
+                // Exit remote session on Ctrl+Alt+E
+                if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
+                else
+                {
+                    App.Flag.isRemote = false;
+                    MyCH9329.keyUpAll();
+                    SetMessage("", Colors.Blue);
+                }
+                e.Handled = true;
+                return;
+            }
 
             try
             {
@@ -289,6 +297,16 @@ namespace Control3
             else if (e.Button == System.Windows.Forms.MouseButtons.XButton1) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.X1); }
             else if (e.Button == System.Windows.Forms.MouseButtons.XButton2)
             {
+                // Skip Processing of XButton2 on mousedown
+            }
+            ((MouseEventExtArgs)e).Handled = true;
+        }
+        private void GlobalHook_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if (!App.Flag.isRemote) { return; }
+
+            else if (e.Button == System.Windows.Forms.MouseButtons.XButton2)
+            {
                 // Exit remote session on XButton2
                 if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
                 else
@@ -297,12 +315,6 @@ namespace Control3
                     SetMessage("", Colors.Blue);
                 }
             }
-            ((MouseEventExtArgs)e).Handled = true;
-        }
-        private void GlobalHook_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            if (!App.Flag.isRemote) { return; }
-
             MyCH9329.mouseButtonUpAll();
             ((MouseEventExtArgs)e).Handled = true;
         }
