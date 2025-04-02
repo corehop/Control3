@@ -27,6 +27,8 @@ namespace Control3
         List<VideoSourceInfo> videoSourceList = new List<VideoSourceInfo>();        // Used to fill the combobox and obtain the ID to open the remote window
         private Timer keepAwakeTimer;
         private Timer keepAwakeWhileInactiveTimer;
+        private int screenWidth;
+        private int screenHeight;
         public MainWindow()
         {
             // Initialize Keep Awake Timer
@@ -40,6 +42,10 @@ namespace Control3
             this.Closed += OnWindowClosed;
             PopulateVideoComboBox();
             MainWindow.MessageControl = message;
+
+            System.Windows.Forms.Screen primaryScreen = System.Windows.Forms.Screen.PrimaryScreen;
+            screenWidth = primaryScreen.Bounds.Width;
+            screenHeight = primaryScreen.Bounds.Height; 
 
             // SharpDX Mouse initialization to get raw mouse movement 
             var directInput = new DirectInput();
@@ -244,7 +250,7 @@ namespace Control3
             if (!App.Flag.isRemote)
             {
                 // Check if the mouse is at the left edge of the screen
-                if (e.X <= 0)
+                if (e.X <= 0 && e.Y > 80 && e.Y < (screenHeight - 80))
                 {
                     // Switch to remote mode
                     if (App.Flag.COMPort != null)
