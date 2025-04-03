@@ -13,6 +13,10 @@ namespace Control3
         public string PortName;
         public int BaudRate;
         public int LeftStatus = 0;
+        public int RightStatus = 0;
+        public int MiddleStatus = 0;
+        public int X1Status = 0;
+        public int X2Status = 0;
         private SerialPort serialPort;
 
         public CH9329(string PortName = "COM4", int BaudRate = 57600)
@@ -234,7 +238,8 @@ namespace Control3
             // ========================
             List<int> mouseMoveRelPacketListInt = new List<int> { 0x57, 0xAB, 0x00, 0x05, 0x05, 0x01, 0x00 };
 
-            mouseMoveRelPacketListInt[6] = LeftStatus;
+            byte buttonStatus = (byte)(LeftStatus | RightStatus | MiddleStatus | X1Status | X2Status);
+            mouseMoveRelPacketListInt[6] = buttonStatus;
 
             mouseMoveRelPacketListInt.Add((byte)(x));
             mouseMoveRelPacketListInt.Add((byte)(y));
@@ -258,6 +263,22 @@ namespace Control3
             {
                 LeftStatus = 1;
             }
+            else if ((int)buttonCode == 2)
+            {
+                RightStatus = 2;
+            }
+            else if ((int)buttonCode == 4)
+            {
+                MiddleStatus = 4;
+            }
+            else if ((int)buttonCode == 8)
+            {
+                X1Status = 8;
+            }
+            else if ((int)buttonCode == 3)
+            {
+                X2Status = 16;
+            }
 
             byte[] mouseButtonDownPacket = createPacketArray(mouseButtonDownPacketListInt, true);
             sendPacket(mouseButtonDownPacket);
@@ -267,6 +288,10 @@ namespace Control3
         {
             byte[] mouseButtonUpPacket = { 0x57, 0xAB, 0x00, 0x05, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x0D };
             LeftStatus = 0;
+            RightStatus = 0;
+            MiddleStatus = 0;
+            X1Status = 0;
+            X2Status = 0;
             sendPacket(mouseButtonUpPacket);
         }
 
