@@ -54,10 +54,33 @@ namespace Control3
             mouse.Properties.AxisMode = DeviceAxisMode.Relative;
             mouse.Acquire();
 
+            InitializePort();
+        }
+
+        private bool InitializePort()
+        {
             // Initialize CH9329 and Mouse hooks
             if (SetPort())
             {
-                MyCH9329 = new CH9329(App.Flag.COMPort);
+                try
+                {
+                    MyCH9329 = new CH9329(App.Flag.COMPort);
+                    return RegisterGlobalHooks();
+                }
+                catch (Exception ex)
+                {
+                    SetMessage($"Error initializing CH9329: '{ex.Message}'", Colors.Red);
+                    MyCH9329 = null;
+                }
+            }
+
+            return false;
+        }
+
+        private bool RegisterGlobalHooks()
+        {
+            try
+            {
                 globalHook = Hook.GlobalEvents();
                 globalHook.KeyDown += GlobalHook_KeyDown;
                 globalHook.KeyUp += GlobalHook_KeyUp;
@@ -65,8 +88,12 @@ namespace Control3
                 globalHook.MouseDown += GlobalHook_MouseDown;
                 globalHook.MouseUp += GlobalHook_MouseUp;
                 globalHook.MouseWheel += GlobalHook_MouseWheel;
-                //Re-evalutate KeepAwakeComboBox
-                KeepAwakeComboBox_SelectionChanged(keepAwakeComboBox, null);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SetMessage($"Error registering global hook: '{ex.Message}'", Colors.Red);
+                return false;
             }
         }
 
@@ -154,14 +181,14 @@ namespace Control3
         }
         private void NoVideo_Click(object sender, RoutedEventArgs e)
         {
-            if (App.Flag.COMPort != null)
+            if (MyCH9329 != null || InitializePort())
             {
                 MouseUtility.SetMouseCursorAside();
                 mouse.GetCurrentState();
                 App.Flag.Decoration = 0;
                 App.Flag.isRemote = true;
                 SetMessage("Remote Session Active", Colors.Blue);
-            } else SetMessage("No KVM cable present", Colors.Red);
+            }
         }
         private void Video_Click(object sender, RoutedEventArgs e)
         {
@@ -169,6 +196,8 @@ namespace Control3
             {
                 if (App.Flag.COMPort!= null)
                 {
+                    if (MyCH9329 == null) InitializePort();
+
                     App.Flag.Decoration = 0;
                     App.Flag.isRemote = true;
                     App.Flag.isFullScreen = (sender as FrameworkElement)?.Tag?.ToString() == "True" || false;  // Fullscreen button clicked?
