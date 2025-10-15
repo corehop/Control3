@@ -55,6 +55,9 @@ namespace Control3
             mouse.Acquire();
 
             InitializePort();
+
+            InitializeKeepAwakeTimers();
+
         }
 
         private bool InitializePort()
@@ -65,7 +68,11 @@ namespace Control3
                 try
                 {
                     MyCH9329 = new CH9329(App.Flag.COMPort);
-                    return RegisterGlobalHooks();
+                    if ((EnableEdgeSessionCheckBox?.IsChecked == true) || App.Flag.isRemote)
+                    {
+                        return RegisterGlobalHooks();
+                    }
+                    return true;
                 }
                 catch (Exception ex)
                 {
@@ -79,6 +86,7 @@ namespace Control3
 
         private bool RegisterGlobalHooks()
         {
+            if (globalHook != null) return true;
             try
             {
                 globalHook = Hook.GlobalEvents();
@@ -97,13 +105,52 @@ namespace Control3
             }
         }
 
+        private void UnregisterGlobalHooks()
+        {
+            if (globalHook != null)
+            {
+                globalHook.KeyDown -= GlobalHook_KeyDown;
+                globalHook.KeyUp -= GlobalHook_KeyUp;
+                globalHook.MouseMove -= GlobalHook_MouseMove;
+                globalHook.MouseDown -= GlobalHook_MouseDown;
+                globalHook.MouseUp -= GlobalHook_MouseUp;
+                globalHook.MouseWheel -= GlobalHook_MouseWheel;
+                globalHook.Dispose();
+                globalHook = null;
+            }
+        }
+
         private void KeepAwakeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (MyCH9329 == null)
+            InitializeKeepAwakeTimers();
+        }
+
+        private void EnableEdgeSessionCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (EnableEdgeSessionCheckBox.IsChecked == true && globalHook == null)
             {
-                return;
+                RegisterGlobalHooks();
             }
-            var selectedOption = (ComboBoxItem)((ComboBox)sender).SelectedItem;
+        }
+
+        private void EnableEdgeSessionCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (!App.Flag.isRemote)
+            {
+                UnregisterGlobalHooks();
+            }
+        }
+
+        /// <summary>
+        /// Initializes the Keep Awake Timers
+        /// </summary>
+        private void InitializeKeepAwakeTimers()
+        {
+            // Check if the CH9329 is initialized
+            if (MyCH9329 == null) return;
+            // Get the selected option from the Keep Awake ComboBox
+            var selectedOption = keepAwakeComboBox.SelectedItem as ComboBoxItem;
+            if (selectedOption == null) return;
             switch (selectedOption.Content.ToString())
             {
                 case "Off":
@@ -111,21 +158,17 @@ namespace Control3
                     keepAwakeWhileInactiveTimer.Change(Timeout.Infinite, Timeout.Infinite);
                     break;
                 case "While Inactive":
-                    // Stop the Keep Awake Timer
                     keepAwakeTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                    // Start the Keep Awake While Inactive Timer
                     keepAwakeWhileInactiveTimer.Change(0, KeepAwakePeriod);
                     break;
                 case "Always":
-                    //Stop the Keep Awake While Inactive Timer
                     keepAwakeWhileInactiveTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                    // Start the Keep Awake Timer
                     keepAwakeTimer.Change(0, KeepAwakePeriod);
                     break;
             }
         }
 
-        private void SendKeepAwakeSignal(object state)
+        private void SendKeepAwakeSignal(object state = null)
         {
             //Wait a random amount of time to prevent the remote from detecting a pattern
             Thread.Sleep(new Random().Next(1000, 5000));
@@ -135,7 +178,7 @@ namespace Control3
             MyCH9329.charKeyType(App.Flag.Decoration, value);
         }
 
-        private void SendKeepAwakeWhileInactiveSignal(object state)
+        private void SendKeepAwakeWhileInactiveSignal(object state = null)
         {
             if (!App.Flag.isRemote)
             {
@@ -261,6 +304,11 @@ namespace Control3
                     App.Flag.isRemote = false;
                     MyCH9329.keyUpAll();
                     SetMessage("", Colors.Blue);
+
+                    if (EnableEdgeSessionCheckBox.IsChecked != true)
+                    {
+                        UnregisterGlobalHooks();
+                    }
                 }
                 e.Handled = true;
                 return;
@@ -287,7 +335,7 @@ namespace Control3
             if (!App.Flag.isRemote)
             {
                 // Check if the mouse is at the left edge of the screen
-                if (e.X <= 0 && e.Y > 80 && e.Y < (screenHeight - 80))
+                if (EnableEdgeSessionCheckBox.IsChecked == true && e.X <= 0 && e.Y > 80 && e.Y < (screenHeight - 80))
                 {
                     // Switch to remote mode
                     if (App.Flag.COMPort != null)
@@ -342,6 +390,10 @@ namespace Control3
                 {
                     App.Flag.isRemote = false;
                     SetMessage("", Colors.Blue);
+                    if (EnableEdgeSessionCheckBox.IsChecked != true)
+                    {
+                        UnregisterGlobalHooks();
+                    }
                 }
             }
             MyCH9329.mouseButtonUpAll();
