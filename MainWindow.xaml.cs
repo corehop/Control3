@@ -84,6 +84,23 @@ namespace Control3
             return false;
         }
 
+        private void ExitRemoteSession()
+        {
+            if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
+            else
+            {
+                App.Flag.isRemote = false;
+                MyCH9329.keyUpAll();
+                SetMessage("", Colors.Blue);
+
+                if (EnableEdgeSessionCheckBox.IsChecked != true)
+                {
+                    UnregisterGlobalHooks();
+                }
+            }
+
+        }
+
         private bool RegisterGlobalHooks()
         {
             if (globalHook != null) return true;
@@ -298,18 +315,8 @@ namespace Control3
             else if (e.KeyCode == System.Windows.Forms.Keys.E && ((byte)App.Flag.Decoration == 0b0101)) // Ctrl+Alt+E
             {
                 // Exit remote session on Ctrl+Alt+E
-                if (App.Flag.isFullScreen) { remoteInstance.SetFullScreen(false); }
-                else
-                {
-                    App.Flag.isRemote = false;
-                    MyCH9329.keyUpAll();
-                    SetMessage("", Colors.Blue);
+                ExitRemoteSession();
 
-                    if (EnableEdgeSessionCheckBox.IsChecked != true)
-                    {
-                        UnregisterGlobalHooks();
-                    }
-                }
                 e.Handled = true;
                 return;
             }
