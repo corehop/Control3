@@ -90,7 +90,7 @@ namespace Control3
             else
             {
                 App.Flag.isRemote = false;
-                MyCH9329.keyUpAll();
+                MyCH9329.ReleaseAll();
                 SetMessage("", Colors.Blue);
 
                 if (EnableEdgeSessionCheckBox.IsChecked != true)
@@ -191,8 +191,7 @@ namespace Control3
             Thread.Sleep(new Random().Next(1000, 5000));
 
             byte value = Flags.KeyMap[(byte)KeepAwakeKey];
-            MyCH9329.charKeyType(App.Flag.Decoration, value);
-            MyCH9329.charKeyType(App.Flag.Decoration, value);
+            MyCH9329.TapKey((CH9329.SpecialKeyCode)value);
         }
 
         private void SendKeepAwakeWhileInactiveSignal(object state = null)
@@ -203,8 +202,7 @@ namespace Control3
                 Thread.Sleep(new Random().Next(1000, 5000));
 
                 byte value = Flags.KeyMap[(byte)KeepAwakeKey];
-                MyCH9329.charKeyType(App.Flag.Decoration, value);
-                MyCH9329.charKeyType(App.Flag.Decoration, value);
+                MyCH9329.TapKey((CH9329.SpecialKeyCode)value);
             }
         }
 
@@ -274,67 +272,88 @@ namespace Control3
         }
         private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
-            if (!App.Flag.isRemote) { return; }
+            if (!App.Flag.isRemote) return;
 
-            if (e.KeyCode == System.Windows.Forms.Keys.RWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 7)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.RMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 6)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.RShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 5)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.RControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 4)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.LWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 3)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.LMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 2)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 1)); ; }
-            else if (e.KeyCode == System.Windows.Forms.Keys.LControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration | (1 << 0)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.E && ((byte)App.Flag.Decoration == 0b0101)) // Ctrl+Alt+E
+            // Modifier mapping helper
+            void ModDown(CH9329.Modifier m) => MyCH9329.PressModifier(m);
+
+            switch (e.KeyCode)
             {
-                //Skip Processing of Ctrl+Alt+E on keydown
-                e.Handled = true;
-                return;
+                case System.Windows.Forms.Keys.LControlKey: ModDown(CH9329.Modifier.LEFT_CTRL); break;
+                case System.Windows.Forms.Keys.RControlKey: ModDown(CH9329.Modifier.RIGHT_CTRL); break;
+                case System.Windows.Forms.Keys.LShiftKey: ModDown(CH9329.Modifier.LEFT_SHIFT); break;
+                case System.Windows.Forms.Keys.RShiftKey: ModDown(CH9329.Modifier.RIGHT_SHIFT); break;
+                case System.Windows.Forms.Keys.LMenu: ModDown(CH9329.Modifier.LEFT_ALT); break;
+                case System.Windows.Forms.Keys.RMenu: ModDown(CH9329.Modifier.RIGHT_ALT); break;
+                case System.Windows.Forms.Keys.LWin: ModDown(CH9329.Modifier.LEFT_WIN); break;
+                case System.Windows.Forms.Keys.RWin: ModDown(CH9329.Modifier.RIGHT_WIN); break;
             }
 
-                try
+            // Skip Ctrl+Alt+E on keydown
+            if (e.KeyCode == System.Windows.Forms.Keys.E &&
+                MyCH9329 != null &&
+                (App.Flag.Decoration & (1 << 0)) != 0 &&      // Ctrl
+                (App.Flag.Decoration & (1 << 2)) != 0)        // Alt
             {
-                byte value = Flags.KeyMap[(byte)e.KeyValue];
-                MyCH9329.charKeyDown(App.Flag.Decoration, value);
-            }
-            catch (Exception ex) { if (ex != null) { } }
-            
-            e.Handled = true;
-        }
-        private void GlobalHook_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
-        {
-            if (!App.Flag.isRemote) { return; }
-
-			if (e.KeyCode == System.Windows.Forms.Keys.RWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 7)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.RMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 6)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.RShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 5)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.RControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 4)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.LWin) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 3)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.LMenu) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 2)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 1)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.LControlKey) { App.Flag.Decoration = (byte)(App.Flag.Decoration & ~(1 << 0)); }
-            else if (e.KeyCode == System.Windows.Forms.Keys.E && ((byte)App.Flag.Decoration == 0b0101)) // Ctrl+Alt+E
-            {
-                // Exit remote session on Ctrl+Alt+E
-                ExitRemoteSession();
-
                 e.Handled = true;
                 return;
             }
 
             try
             {
-                byte value = Flags.KeyMap[(byte)e.KeyValue];
-                MyCH9329.charKeyUp(App.Flag.Decoration, value);
+                byte hid = Flags.KeyMap[(byte)e.KeyValue];
+                MyCH9329.KeyDown((CH9329.SpecialKeyCode)hid);
             }
-            catch (Exception ex) { if (ex != null) { } }
+            catch { }
 
             e.Handled = true;
         }
+
+        private void GlobalHook_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            if (!App.Flag.isRemote) return;
+
+            // Modifier mapping helper
+            void ModUp(CH9329.Modifier m) => MyCH9329.ReleaseModifier(m);
+
+            switch (e.KeyCode)
+            {
+                case System.Windows.Forms.Keys.LControlKey: ModUp(CH9329.Modifier.LEFT_CTRL); break;
+                case System.Windows.Forms.Keys.RControlKey: ModUp(CH9329.Modifier.RIGHT_CTRL); break;
+                case System.Windows.Forms.Keys.LShiftKey: ModUp(CH9329.Modifier.LEFT_SHIFT); break;
+                case System.Windows.Forms.Keys.RShiftKey: ModUp(CH9329.Modifier.RIGHT_SHIFT); break;
+                case System.Windows.Forms.Keys.LMenu: ModUp(CH9329.Modifier.LEFT_ALT); break;
+                case System.Windows.Forms.Keys.RMenu: ModUp(CH9329.Modifier.RIGHT_ALT); break;
+                case System.Windows.Forms.Keys.LWin: ModUp(CH9329.Modifier.LEFT_WIN); break;
+                case System.Windows.Forms.Keys.RWin: ModUp(CH9329.Modifier.RIGHT_WIN); break;
+            }
+
+            // Ctrl+Alt+E exits session
+            if (e.KeyCode == System.Windows.Forms.Keys.E &&
+                (App.Flag.Decoration & (1 << 0)) != 0 &&
+                (App.Flag.Decoration & (1 << 2)) != 0)
+            {
+                ExitRemoteSession();
+                e.Handled = true;
+                return;
+            }
+
+            try
+            {
+                byte hid = Flags.KeyMap[(byte)e.KeyValue];
+                MyCH9329.KeyUp();
+            }
+            catch { }
+
+            e.Handled = true;
+        }
+
+
         private void GlobalHook_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (!App.Flag.isRemote) { return; }
 
-            MyCH9329.mouseScroll(e.Delta < 0 ? -1 : 1);
+            MyCH9329.MouseScroll(e.Delta < 0 ? -1 : 1);
             ((MouseEventExtArgs)e).Handled = true;
         }
         private void GlobalHook_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -367,7 +386,7 @@ namespace Control3
                 App.Flag.isMoving = true;  // In CH9329 the flag is set to false again after the package is sent to remote. Prevents queue of movement on remote
                 var mouseState = mouse.GetCurrentState();
                 int X = mouseState.X; int Y = mouseState.Y;
-                MyCH9329.mouseMoveRel(X, Y);
+                MyCH9329.MouseMoveRel(X, Y);
             }
             ((MouseEventExtArgs)e).Handled = true;
         }
@@ -375,10 +394,10 @@ namespace Control3
         {
             if (!App.Flag.isRemote) { return; }
 
-            if (e.Button == System.Windows.Forms.MouseButtons.Left) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.LEFT); }
-            else if (e.Button == System.Windows.Forms.MouseButtons.Right) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.RIGHT); }
-            else if (e.Button == System.Windows.Forms.MouseButtons.Middle) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.MIDDLE); }
-            else if (e.Button == System.Windows.Forms.MouseButtons.XButton1) { MyCH9329.mouseButtonDown(CH9329.MouseButtonCode.X1); }
+            if (e.Button == System.Windows.Forms.MouseButtons.Left) { MyCH9329.MouseButtonDown(CH9329.MouseButtonCode.LEFT); }
+            else if (e.Button == System.Windows.Forms.MouseButtons.Right) { MyCH9329.MouseButtonDown(CH9329.MouseButtonCode.RIGHT); }
+            else if (e.Button == System.Windows.Forms.MouseButtons.Middle) { MyCH9329.MouseButtonDown(CH9329.MouseButtonCode.MIDDLE); }
+            else if (e.Button == System.Windows.Forms.MouseButtons.XButton1) { MyCH9329.MouseButtonDown(CH9329.MouseButtonCode.X1); }
             else if (e.Button == System.Windows.Forms.MouseButtons.XButton2)
             {
                 // Skip Processing of XButton2 on mousedown
@@ -403,7 +422,7 @@ namespace Control3
                     }
                 }
             }
-            MyCH9329.mouseButtonUpAll();
+            MyCH9329.MouseButtonUpAll();
             ((MouseEventExtArgs)e).Handled = true;
         }
         public void OnWindowClosed(object sender, WindowEventArgs e)
