@@ -287,6 +287,12 @@ namespace Control3
                 case System.Windows.Forms.Keys.RMenu: ModDown(CH9329.Modifier.RIGHT_ALT); break;
                 case System.Windows.Forms.Keys.LWin: ModDown(CH9329.Modifier.LEFT_WIN); break;
                 case System.Windows.Forms.Keys.RWin: ModDown(CH9329.Modifier.RIGHT_WIN); break;
+                case System.Windows.Forms.Keys.VolumeUp: MyCH9329?.MediaKeyPress(CH9329.MediaKey.VOLUMEUP); break;
+                case System.Windows.Forms.Keys.VolumeDown: MyCH9329?.MediaKeyPress(CH9329.MediaKey.VOLUMEDOWN); break;
+                case System.Windows.Forms.Keys.VolumeMute: MyCH9329?.MediaKeyPress(CH9329.MediaKey.MUTE); break;
+                case System.Windows.Forms.Keys.MediaPlayPause: MyCH9329?.MediaKeyPress(CH9329.MediaKey.PLAYPAUSE); break;
+                case System.Windows.Forms.Keys.MediaPreviousTrack: MyCH9329?.MediaKeyPress(CH9329.MediaKey.PREVTRACK); break;
+                case System.Windows.Forms.Keys.MediaNextTrack: MyCH9329?.MediaKeyPress(CH9329.MediaKey.NEXTTRACK); break;
             }
 
             // Skip Ctrl+Alt+E on keydown
