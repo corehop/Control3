@@ -274,19 +274,15 @@ namespace Control3
         {
             if (!App.Flag.isRemote) return;
 
-            // Modifier mapping helper
-            void ModDown(CH9329.Modifier m) => MyCH9329.PressModifier(m);
+            if (TryGetModifier(e.KeyCode, out CH9329.Modifier modifier))
+            {
+                MyCH9329.PressModifier(modifier);
+                e.Handled = true;
+                return;
+            }
 
             switch (e.KeyCode)
             {
-                case System.Windows.Forms.Keys.LControlKey: ModDown(CH9329.Modifier.LEFT_CTRL); break;
-                case System.Windows.Forms.Keys.RControlKey: ModDown(CH9329.Modifier.RIGHT_CTRL); break;
-                case System.Windows.Forms.Keys.LShiftKey: ModDown(CH9329.Modifier.LEFT_SHIFT); break;
-                case System.Windows.Forms.Keys.RShiftKey: ModDown(CH9329.Modifier.RIGHT_SHIFT); break;
-                case System.Windows.Forms.Keys.LMenu: ModDown(CH9329.Modifier.LEFT_ALT); break;
-                case System.Windows.Forms.Keys.RMenu: ModDown(CH9329.Modifier.RIGHT_ALT); break;
-                case System.Windows.Forms.Keys.LWin: ModDown(CH9329.Modifier.LEFT_WIN); break;
-                case System.Windows.Forms.Keys.RWin: ModDown(CH9329.Modifier.RIGHT_WIN); break;
                 case System.Windows.Forms.Keys.VolumeUp: MyCH9329?.MediaKeyPress(CH9329.MediaKey.VOLUMEUP); break;
                 case System.Windows.Forms.Keys.VolumeDown: MyCH9329?.MediaKeyPress(CH9329.MediaKey.VOLUMEDOWN); break;
                 case System.Windows.Forms.Keys.VolumeMute: MyCH9329?.MediaKeyPress(CH9329.MediaKey.MUTE); break;
@@ -319,19 +315,11 @@ namespace Control3
         {
             if (!App.Flag.isRemote) return;
 
-            // Modifier mapping helper
-            void ModUp(CH9329.Modifier m) => MyCH9329.ReleaseModifier(m);
-
-            switch (e.KeyCode)
+            if (TryGetModifier(e.KeyCode, out CH9329.Modifier modifier))
             {
-                case System.Windows.Forms.Keys.LControlKey: ModUp(CH9329.Modifier.LEFT_CTRL); break;
-                case System.Windows.Forms.Keys.RControlKey: ModUp(CH9329.Modifier.RIGHT_CTRL); break;
-                case System.Windows.Forms.Keys.LShiftKey: ModUp(CH9329.Modifier.LEFT_SHIFT); break;
-                case System.Windows.Forms.Keys.RShiftKey: ModUp(CH9329.Modifier.RIGHT_SHIFT); break;
-                case System.Windows.Forms.Keys.LMenu: ModUp(CH9329.Modifier.LEFT_ALT); break;
-                case System.Windows.Forms.Keys.RMenu: ModUp(CH9329.Modifier.RIGHT_ALT); break;
-                case System.Windows.Forms.Keys.LWin: ModUp(CH9329.Modifier.LEFT_WIN); break;
-                case System.Windows.Forms.Keys.RWin: ModUp(CH9329.Modifier.RIGHT_WIN); break;
+                MyCH9329.ReleaseModifier(modifier);
+                e.Handled = true;
+                return;
             }
 
             // Ctrl+Alt+E exits session
@@ -352,6 +340,43 @@ namespace Control3
             catch { }
 
             e.Handled = true;
+        }
+
+        private static bool TryGetModifier(System.Windows.Forms.Keys key, out CH9329.Modifier modifier)
+        {
+            switch (key)
+            {
+                case System.Windows.Forms.Keys.ControlKey:
+                case System.Windows.Forms.Keys.LControlKey:
+                    modifier = CH9329.Modifier.LEFT_CTRL;
+                    return true;
+                case System.Windows.Forms.Keys.RControlKey:
+                    modifier = CH9329.Modifier.RIGHT_CTRL;
+                    return true;
+                case System.Windows.Forms.Keys.ShiftKey:
+                case System.Windows.Forms.Keys.LShiftKey:
+                    modifier = CH9329.Modifier.LEFT_SHIFT;
+                    return true;
+                case System.Windows.Forms.Keys.RShiftKey:
+                    modifier = CH9329.Modifier.RIGHT_SHIFT;
+                    return true;
+                case System.Windows.Forms.Keys.Menu:
+                case System.Windows.Forms.Keys.LMenu:
+                    modifier = CH9329.Modifier.LEFT_ALT;
+                    return true;
+                case System.Windows.Forms.Keys.RMenu:
+                    modifier = CH9329.Modifier.RIGHT_ALT;
+                    return true;
+                case System.Windows.Forms.Keys.LWin:
+                    modifier = CH9329.Modifier.LEFT_WIN;
+                    return true;
+                case System.Windows.Forms.Keys.RWin:
+                    modifier = CH9329.Modifier.RIGHT_WIN;
+                    return true;
+                default:
+                    modifier = default;
+                    return false;
+            }
         }
 
 
